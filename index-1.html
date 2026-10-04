@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Result Calculator</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f3f6fb;color:#222;padding:20px}
+.container{max-width:650px;margin:auto;background:white;padding:25px;border-radius:16px;box-shadow:0 5px 20px rgba(0,0,0,.12)}
+h1{text-align:center;margin-top:0}
+.subtitle{text-align:center;color:#666;margin-bottom:25px}
+label{display:block;font-weight:bold;margin:13px 0 6px}
+input{width:100%;padding:12px;border:1px solid #bbb;border-radius:8px;font-size:16px}
+button{width:100%;padding:14px;margin-top:22px;border:0;border-radius:8px;background:#1669d8;color:white;font-size:17px;font-weight:bold}
+.result{display:none;margin-top:25px;border:1px solid #ddd;border-radius:12px;padding:20px;background:#fafafa}
+.result h2{text-align:center;margin-top:0}
+table{width:100%;border-collapse:collapse;margin:15px 0}
+th,td{border:1px solid #ccc;padding:10px;text-align:left}
+.summary p{font-size:17px;margin:9px 0}
+.small{font-size:13px;color:#666;text-align:center;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Student Result Calculator</h1>
+<div class="subtitle">Enter marks according to the maximum marks of each subject</div>
+
+<label>Student Name</label>
+<input type="text" id="name" placeholder="Enter your name">
+
+<label>Mathematics (10)</label>
+<input type="number" id="mathematics" min="0" max="10" step="0.01">
+
+<label>Chemistry (10)</label>
+<input type="number" id="chemistry" min="0" max="10" step="0.01">
+
+<label>Programming Language (10)</label>
+<input type="number" id="programming" min="0" max="10" step="0.01">
+
+<label>Electronics (20)</label>
+<input type="number" id="electronics" min="0" max="20" step="0.01">
+
+<label>Mechanical (10)</label>
+<input type="number" id="mechanical" min="0" max="10" step="0.01">
+
+<label>Environment (10)</label>
+<input type="number" id="environment" min="0" max="10" step="0.01">
+
+<label>PCTW (10)</label>
+<input type="number" id="pctw" min="0" max="10" step="0.01">
+
+<button onclick="calculateResult()">Calculate Result</button>
+
+<div class="result" id="result">
+<h2>Student Marksheet</h2>
+<p><strong>Name:</strong> <span id="studentName"></span></p>
+<table>
+<thead><tr><th>Subject</th><th>Marks</th><th>Maximum</th></tr></thead>
+<tbody id="marksTable"></tbody>
+</table>
+<div class="summary">
+<p><strong>Total:</strong> <span id="total"></span> / 80</p>
+<p><strong>Percentage:</strong> <span id="percentage"></span>%</p>
+<p><strong>Grade:</strong> <span id="grade"></span></p>
+<p><strong>Result:</strong> <span id="status"></span></p>
+</div>
+</div>
+<div class="small">Maximum marks: 10 for six subjects and 20 for Electronics. Total = 80. Passing percentage = 40%.</div>
+</div>
+
+<script>
+function mark(id){ return Number(document.getElementById(id).value); }
+
+function calculateResult(){
+  const name=document.getElementById("name").value.trim();
+  if(!name){alert("Please enter your name.");return;}
+
+  const subjects=[
+    ["Mathematics",mark("mathematics"),10],
+    ["Chemistry",mark("chemistry"),10],
+    ["Programming Language",mark("programming"),10],
+    ["Electronics",mark("electronics"),20],
+    ["Mechanical",mark("mechanical"),10],
+    ["Environment",mark("environment"),10],
+    ["PCTW",mark("pctw"),10]
+  ];
+
+  for(const s of subjects){
+    if(!Number.isFinite(s[1]) || s[1]<0 || s[1]>s[2]){
+      alert("Please enter valid marks according to the maximum marks shown.");
+      return;
+    }
+  }
+
+  const total=subjects.reduce((sum,s)=>sum+s[1],0);
+  const percentage=(total/80)*100;
+
+  let grade;
+  if(percentage>=90) grade="A+";
+  else if(percentage>=80) grade="A";
+  else if(percentage>=70) grade="B+";
+  else if(percentage>=60) grade="B";
+  else if(percentage>=50) grade="C";
+  else if(percentage>=40) grade="D";
+  else grade="F";
+
+  // 40% overall passing marks.
+  const passed = percentage >= 40;
+
+  document.getElementById("studentName").textContent=name;
+  document.getElementById("total").textContent=total.toFixed(2).replace(/\.00$/,"");
+  document.getElementById("percentage").textContent=percentage.toFixed(2);
+  document.getElementById("grade").textContent=grade;
+  document.getElementById("status").textContent=passed?"PASS":"FAIL";
+
+  document.getElementById("marksTable").innerHTML=subjects.map(s=>
+    `<tr><td>${s[0]}</td><td>${s[1]}</td><td>${s[2]}</td></tr>`
+  ).join("");
+
+  document.getElementById("result").style.display="block";
+}
+</script>
+</body>
+</html>
