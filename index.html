@@ -3,122 +3,284 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student Result Calculator</title>
+<title>Student Marks Calculator & Comparison</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f3f6fb;color:#222;padding:20px}
-.container{max-width:650px;margin:auto;background:white;padding:25px;border-radius:16px;box-shadow:0 5px 20px rgba(0,0,0,.12)}
-h1{text-align:center;margin-top:0}
-.subtitle{text-align:center;color:#666;margin-bottom:25px}
-label{display:block;font-weight:bold;margin:13px 0 6px}
-input{width:100%;padding:12px;border:1px solid #bbb;border-radius:8px;font-size:16px}
-button{width:100%;padding:14px;margin-top:22px;border:0;border-radius:8px;background:#1669d8;color:white;font-size:17px;font-weight:bold}
-.result{display:none;margin-top:25px;border:1px solid #ddd;border-radius:12px;padding:20px;background:#fafafa}
-.result h2{text-align:center;margin-top:0}
-table{width:100%;border-collapse:collapse;margin:15px 0}
-th,td{border:1px solid #ccc;padding:10px;text-align:left}
-.summary p{font-size:17px;margin:9px 0}
-.small{font-size:13px;color:#666;text-align:center;margin-top:18px}
+body{font-family:Arial,sans-serif;margin:0;background:#f3f6fb;color:#172033}
+.container{max-width:1200px;margin:auto;padding:20px}
+h1{text-align:center;margin:10px 0 6px}
+.subtitle{text-align:center;color:#667085;margin-bottom:20px}
+.card{background:white;border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 4px 18px #00000012}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+label{font-weight:600;font-size:14px}
+input{width:100%;padding:11px;margin-top:5px;border:1px solid #ccd3df;border-radius:8px;font-size:15px}
+button{border:0;border-radius:9px;padding:11px 16px;font-weight:700;cursor:pointer;margin:5px}
+.primary{background:#2563eb;color:white}.danger{background:#dc2626;color:white}
+.secondary{background:#e8eefc;color:#1d4ed8}
+.student-list{display:grid;gap:10px}
+.student-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1px solid #e3e7ef;border-radius:10px}
+.badge{padding:5px 9px;border-radius:20px;font-size:12px;font-weight:700}
+.pass{background:#dcfce7;color:#166534}.fail{background:#fee2e2;color:#991b1b}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:1050px}
+th,td{padding:10px;border:1px solid #e1e5eb;text-align:center;white-space:nowrap}
+th{background:#eef3f9}
+.fail-cell{color:#b91c1c;font-weight:700}
+.pass-cell{color:#15803d;font-weight:700}
+.rank1{font-weight:800}
+.notice{padding:12px;border-radius:9px;background:#fff7ed;color:#9a3412;margin-top:10px}
+.small{font-size:13px;color:#667085}
+.hidden{display:none}
+.actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:15px}
+@media(max-width:600px){.container{padding:10px}.card{padding:14px}}
 </style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="container">
-<h1>Student Result Calculator</h1>
-<div class="subtitle">Enter marks according to the maximum marks of each subject</div>
+<h1>Student Marks Calculator</h1>
+<div class="subtitle">Up to 1000 students • Subject-wise Pass/Fail • Ranking & Comparison</div>
 
-<label>Student Name</label>
-<input type="text" id="name" placeholder="Enter your name">
+<div class="card">
+<h2>Add Student Result</h2>
+<div class="grid">
+<div><label>Student Name</label><input id="name" type="text" placeholder="Enter name"></div>
+<div><label>Roll Number</label><input id="roll" type="text" placeholder="Enter roll number"></div>
+</div>
+<br>
+<div class="grid">
+<div><label>Mathematics (10)</label><input class="mark" id="mathematics" type="number" min="0" max="10"></div>
+<div><label>Chemistry (10)</label><input class="mark" id="chemistry" type="number" min="0" max="10"></div>
+<div><label>Electronics (20)</label><input class="mark" id="electronics" type="number" min="0" max="20"></div>
+<div><label>Mechanical (10)</label><input class="mark" id="mechanical" type="number" min="0" max="10"></div>
+<div><label>Programming Language (10)</label><input class="mark" id="programming" type="number" min="0" max="10"></div>
+<div><label>Environment (10)</label><input class="mark" id="environment" type="number" min="0" max="10"></div>
+<div><label>PCTW (10)</label><input class="mark" id="pctw" type="number" min="0" max="10"></div>
+</div>
+<div class="actions">
+<button class="primary" onclick="addStudent()">Add Student</button>
+<button class="secondary" onclick="clearForm()">Clear</button>
+</div>
+<div id="editStatus" class="small" style="margin-top:8px"></div>
+    <div class="notice">Passing rule: each 10-mark subject needs <b>4</b> marks; Electronics (20) needs <b>8</b> marks. One failed subject = overall FAIL.</div>
+</div>
 
-<label>Mathematics (10)</label>
-<input type="number" id="mathematics" min="0" max="10" step="0.01">
+<div class="card">
+<h2>Students <span id="count">(0/1000)</span></h2>
+<div id="studentList" class="student-list"><p class="small">No students added yet.</p></div>
+</div>
 
-<label>Chemistry (10)</label>
-<input type="number" id="chemistry" min="0" max="10" step="0.01">
-
-<label>Programming Language (10)</label>
-<input type="number" id="programming" min="0" max="10" step="0.01">
-
-<label>Electronics (20)</label>
-<input type="number" id="electronics" min="0" max="20" step="0.01">
-
-<label>Mechanical (10)</label>
-<input type="number" id="mechanical" min="0" max="10" step="0.01">
-
-<label>Environment (10)</label>
-<input type="number" id="environment" min="0" max="10" step="0.01">
-
-<label>PCTW (10)</label>
-<input type="number" id="pctw" min="0" max="10" step="0.01">
-
-<button onclick="calculateResult()">Calculate Result</button>
-
-<div class="result" id="result">
-<h2>Student Marksheet</h2>
-<p><strong>Name:</strong> <span id="studentName"></span></p>
-<table>
-<thead><tr><th>Subject</th><th>Marks</th><th>Maximum</th></tr></thead>
-<tbody id="marksTable"></tbody>
-</table>
-<div class="summary">
-<p><strong>Total:</strong> <span id="total"></span> / 80</p>
-<p><strong>Percentage:</strong> <span id="percentage"></span>%</p>
-<p><strong>Grade:</strong> <span id="grade"></span></p>
-<p><strong>Result:</strong> <span id="status"></span></p>
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+<h2>Result Comparison</h2>
+<div>
+<button class="secondary" onclick="sortResults()">Sort by Rank</button>
+<button class="secondary" onclick="downloadCSV()">Download CSV</button>
+<button class="secondary" onclick="downloadExcel()">Download Excel</button>
+<button class="secondary" onclick="backupData()">Backup Data</button>
+<button class="secondary" onclick="document.getElementById('restoreFile').click()">Load Backup</button>
+<input id="restoreFile" type="file" accept="application/json" style="display:none" onchange="restoreData(event)">
+<button class="danger" onclick="clearAll()">Clear All</button>
 </div>
 </div>
-<div class="small">Maximum marks: 10 for six subjects and 20 for Electronics. Total = 80. Passing percentage = 40%.</div>
+<div id="comparison" class="table-wrap"><p class="small">Add students to see comparison.</p></div>
+</div>
 </div>
 
 <script>
-function mark(id){ return Number(document.getElementById(id).value); }
+const subjects = [
+ {key:"mathematics", name:"Mathematics", max:10, pass:4},
+ {key:"chemistry", name:"Chemistry", max:10, pass:4},
+ {key:"electronics", name:"Electronics", max:20, pass:8},
+ {key:"mechanical", name:"Mechanical", max:10, pass:4},
+ {key:"programming", name:"Programming", max:10, pass:4},
+ {key:"environment", name:"Environment", max:10, pass:4},
+ {key:"pctw", name:"PCTW", max:10, pass:4}
+];
+let students = [];
+let editingIndex = -1;
+const STORAGE_KEY = "studentMarksCalculator_v2";
+loadSavedData();
 
-function calculateResult(){
+function getData(){
   const name=document.getElementById("name").value.trim();
-  if(!name){alert("Please enter your name.");return;}
-
-  const subjects=[
-    ["Mathematics",mark("mathematics"),10],
-    ["Chemistry",mark("chemistry"),10],
-    ["Programming Language",mark("programming"),10],
-    ["Electronics",mark("electronics"),20],
-    ["Mechanical",mark("mechanical"),10],
-    ["Environment",mark("environment"),10],
-    ["PCTW",mark("pctw"),10]
-  ];
-
+  const roll=document.getElementById("roll").value.trim();
+  if(!name){alert("Please enter student name.");return null;}
+  const marks={};
   for(const s of subjects){
-    if(!Number.isFinite(s[1]) || s[1]<0 || s[1]>s[2]){
-      alert("Please enter valid marks according to the maximum marks shown.");
-      return;
+    const v=document.getElementById(s.key).value;
+    if(v==="" || Number(v)<0 || Number(v)>s.max){
+      alert(`Enter valid marks for ${s.name} (0-${s.max}).`);
+      return null;
     }
+    marks[s.key]=Number(v);
+  }
+  return {name,roll,marks};
+}
+function addStudent(){
+  const data=getData(); if(!data)return;
+
+  if(editingIndex >= 0){
+    students[editingIndex] = data;
+    saveData();
+    cancelEdit();
+    render();
+    alert("Student data updated successfully.");
+    return;
   }
 
-  const total=subjects.reduce((sum,s)=>sum+s[1],0);
-  const percentage=(total/80)*100;
+  if(students.length>=1000){alert("Maximum 1000 students allowed.");return;}
+  students.push(data);
+  saveData();
+  clearForm(); render();
+}
 
-  let grade;
-  if(percentage>=90) grade="A+";
-  else if(percentage>=80) grade="A";
-  else if(percentage>=70) grade="B+";
-  else if(percentage>=60) grade="B";
-  else if(percentage>=50) grade="C";
-  else if(percentage>=40) grade="D";
-  else grade="F";
+function editStudent(i){
+  const st = students[i];
+  if(!st)return;
 
-  // 40% overall passing marks.
-  const passed = percentage >= 40;
+  editingIndex = i;
+  document.getElementById("name").value = st.name || "";
+  document.getElementById("roll").value = st.roll || "";
 
-  document.getElementById("studentName").textContent=name;
-  document.getElementById("total").textContent=total.toFixed(2).replace(/\.00$/,"");
-  document.getElementById("percentage").textContent=percentage.toFixed(2);
-  document.getElementById("grade").textContent=grade;
-  document.getElementById("status").textContent=passed?"PASS":"FAIL";
+  subjects.forEach(s=>{
+    document.getElementById(s.key).value = st.marks[s.key];
+  });
 
-  document.getElementById("marksTable").innerHTML=subjects.map(s=>
-    `<tr><td>${s[0]}</td><td>${s[1]}</td><td>${s[2]}</td></tr>`
-  ).join("");
+  document.getElementById("saveBtn").textContent = "Update Student";
+  document.getElementById("cancelEditBtn").classList.remove("hidden");
+  document.getElementById("editStatus").textContent = "Editing student: " + st.name;
 
-  document.getElementById("result").style.display="block";
+  document.querySelector(".card h2").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+function cancelEdit(){
+  editingIndex = -1;
+  document.getElementById("saveBtn").textContent = "Add Student";
+  document.getElementById("cancelEditBtn").classList.add("hidden");
+  document.getElementById("editStatus").textContent = "";
+  clearForm();
+}
+function clearForm(){
+  document.getElementById("name").value="";
+  document.getElementById("roll").value="";
+  subjects.forEach(s=>document.getElementById(s.key).value="");
+}
+function resultInfo(st){
+  let total=0, failed=[];
+  subjects.forEach(s=>{
+    total+=st.marks[s.key];
+    if(st.marks[s.key]<s.pass) failed.push(s.name);
+  });
+  const max=80;
+  const percentage=(total/max)*100;
+  return {total,percentage,failed,passed:failed.length===0};
+}
+function removeStudent(i){students.splice(i,1);saveData();render();}
+function sortResults(){
+  students.sort((a,b)=>resultInfo(b).total-resultInfo(a).total);
+  saveData(); render();
+}
+function renderList(){
+  const box=document.getElementById("studentList");
+  document.getElementById("count").textContent=`(${students.length}/1000)`;
+  if(!students.length){box.innerHTML='<p class="small">No students added yet.</p>';return;}
+  box.innerHTML=students.map((s,i)=>{
+    const r=resultInfo(s);
+    return `<div class="student-row">
+      <div><b>${escapeHtml(s.name)}</b> ${s.roll?`<span class="small">• Roll: ${escapeHtml(s.roll)}</span>`:""}
+      <br><span class="badge ${r.passed?"pass":"fail"}">${r.passed?"PASS":"FAIL"}</span>
+      <span class="small">${r.total}/80 • ${r.percentage.toFixed(2)}%</span>
+      ${!r.passed?`<span class="small"> • Failed: ${r.failed.join(", ")}</span>`:""}</div>
+      <div><button class="secondary" onclick="editStudent(${i})">Edit</button><button class="danger" onclick="removeStudent(${i})">Remove</button></div>
+    </div>`;
+  }).join("");
+}
+function renderTable(){
+  const box=document.getElementById("comparison");
+  if(!students.length){box.innerHTML='<p class="small">Add students to see comparison.</p>';return;}
+  const sorted=[...students].sort((a,b)=>resultInfo(b).total-resultInfo(a).total);
+  let html=`<table><thead><tr>
+  <th>Rank</th><th>Student</th><th>Roll</th>
+  ${subjects.map(s=>`<th>${s.name}<br><small>/${s.max}</small></th>`).join("")}
+  <th>Total /80</th><th>Percentage</th><th>Final Result</th><th>Failed Subjects</th>
+  </tr></thead><tbody>`;
+  sorted.forEach((s,i)=>{
+    const r=resultInfo(s);
+    html+=`<tr class="${i===0?'rank1':''}">
+      <td>${i+1}</td><td>${escapeHtml(s.name)}</td><td>${escapeHtml(s.roll||"-")}</td>
+      ${subjects.map(sub=>{
+        const m=s.marks[sub.key], ok=m>=sub.pass;
+        return `<td class="${ok?'pass-cell':'fail-cell'}">${m} ${ok?'✓':'✗'}</td>`;
+      }).join("")}
+      <td><b>${r.total}</b></td><td>${r.percentage.toFixed(2)}%</td>
+      <td><span class="badge ${r.passed?'pass':'fail'}">${r.passed?'PASS':'FAIL'}</span></td>
+      <td class="${r.failed.length?'fail-cell':''}">${r.failed.length?r.failed.join(", "):"None"}</td>
+    </tr>`;
+  });
+  html+="</tbody></table>";
+  box.innerHTML=html;
+}
+function render(){renderList();renderTable();}
+function clearAll(){
+  if(students.length && !confirm("Delete all student results?"))return;
+  students=[]; saveData(); render();
+}
+function saveData(){
+  try{localStorage.setItem(STORAGE_KEY, JSON.stringify(students));}catch(e){alert("Data could not be saved in this browser.");}
+}
+function loadSavedData(){
+  try{
+    const saved=localStorage.getItem(STORAGE_KEY);
+    if(saved){const data=JSON.parse(saved); if(Array.isArray(data)) students=data.slice(0,1000);}
+  }catch(e){students=[];}
+}
+function makeRows(){
+  return students.map((s,i)=>{
+    const r=resultInfo(s);
+    const row={Rank:i+1,Student:s.name,Roll:s.roll||""};
+    subjects.forEach(sub=>row[sub.name]=s.marks[sub.key]);
+    row["Total /80"]=r.total; row["Percentage"]=Number(r.percentage.toFixed(2));
+    row["Final Result"]=r.passed?"PASS":"FAIL"; row["Failed Subjects"]=r.failed.join(", ");
+    return row;
+  });
+}
+function downloadCSV(){
+  if(!students.length){alert("No student data to download.");return;}
+  const rows=makeRows(); const headers=Object.keys(rows[0]);
+  const csv=[headers,...rows.map(r=>headers.map(h=>`"${String(r[h]).replace(/"/g,'""')}"`))].map(r=>r.join(",")).join("\n");
+  downloadBlob("student_results.csv",csv,"text/csv;charset=utf-8;");
+}
+function downloadExcel(){
+  if(!students.length){alert("No student data to download.");return;}
+  if(typeof XLSX==="undefined"){alert("Excel library could not load. Please check your internet connection and try again.");return;}
+  const ws=XLSX.utils.json_to_sheet(makeRows()); const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Results"); XLSX.writeFile(wb,"student_results.xlsx");
+}
+function backupData(){
+  if(!students.length){alert("No student data to backup.");return;}
+  downloadBlob("student_results_backup.json",JSON.stringify(students,null,2),"application/json");
+}
+function restoreData(event){
+  const file=event.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      if(!Array.isArray(data) || data.length>1000) throw new Error("Invalid");
+      students=data; saveData(); render(); alert(`${students.length} student records loaded successfully.`);
+    }catch(e){alert("Invalid backup file.");}
+    event.target.value="";
+  };
+  reader.readAsText(file);
+}
+function downloadBlob(name,data,type){
+  const blob=new Blob([data],{type}); const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 }
 </script>
 </body>
