@@ -3,285 +3,338 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student Marks Calculator & Comparison</title>
+<title>Student Marks Calculator</title>
 <style>
 *{box-sizing:border-box}
-body{font-family:Arial,sans-serif;margin:0;background:#f3f6fb;color:#172033}
-.container{max-width:1200px;margin:auto;padding:20px}
-h1{text-align:center;margin:10px 0 6px}
-.subtitle{text-align:center;color:#667085;margin-bottom:20px}
-.card{background:white;border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 4px 18px #00000012}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+body{font-family:Arial,sans-serif;margin:0;background:#f4f7fb;color:#1f2937}
+.container{max-width:1100px;margin:auto;padding:18px}
+h1{margin:0 0 6px;color:#123c69}
+.subtitle{margin:0 0 18px;color:#667085}
+.card{background:#fff;border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 3px 14px rgba(0,0,0,.08)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 label{font-weight:600;font-size:14px}
-input{width:100%;padding:11px;margin-top:5px;border:1px solid #ccd3df;border-radius:8px;font-size:15px}
-button{border:0;border-radius:9px;padding:11px 16px;font-weight:700;cursor:pointer;margin:5px}
-.primary{background:#2563eb;color:white}.danger{background:#dc2626;color:white}
-.secondary{background:#e8eefc;color:#1d4ed8}
-.student-list{display:grid;gap:10px}
-.student-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1px solid #e3e7ef;border-radius:10px}
-.badge{padding:5px 9px;border-radius:20px;font-size:12px;font-weight:700}
-.pass{background:#dcfce7;color:#166534}.fail{background:#fee2e2;color:#991b1b}
+input{width:100%;padding:11px;margin-top:5px;border:1px solid #ccd3dd;border-radius:8px;font-size:15px}
+button{border:0;border-radius:8px;padding:10px 14px;margin:5px;cursor:pointer;font-weight:700}
+.primary{background:#1769aa;color:#fff}.success{background:#168a4a;color:#fff}.danger{background:#c62828;color:#fff}
+.secondary{background:#e8eef5;color:#123c69}
+button:disabled{opacity:.5;cursor:not-allowed}
+.actions{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.status{padding:10px;border-radius:8px;background:#eef6ff;margin-bottom:12px}
+.pass{color:#14833b;font-weight:700}.fail{color:#c62828;font-weight:700}
 .table-wrap{overflow:auto}
-table{width:100%;border-collapse:collapse;min-width:1050px}
-th,td{padding:10px;border:1px solid #e1e5eb;text-align:center;white-space:nowrap}
-th{background:#eef3f9}
-.fail-cell{color:#b91c1c;font-weight:700}
-.pass-cell{color:#15803d;font-weight:700}
-.rank1{font-weight:800}
-.notice{padding:12px;border-radius:9px;background:#fff7ed;color:#9a3412;margin-top:10px}
+table{width:100%;border-collapse:collapse;min-width:850px}
+th,td{border:1px solid #dce2e8;padding:9px;text-align:center}
+th{background:#edf3f8}
+.search{margin-bottom:10px}
 .small{font-size:13px;color:#667085}
-.hidden{display:none}
-.actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:15px}
-@media(max-width:600px){.container{padding:10px}.card{padding:14px}}
+.result-box{padding:12px;background:#f7fafc;border-radius:8px;margin-top:12px}
+.compare-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+.student-card{border:1px solid #dce2e8;border-radius:10px;padding:12px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.container{padding:10px}}
 </style>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="container">
-<h1>Student Marks Calculator</h1>
-<div class="subtitle">Up to 1000 students • Subject-wise Pass/Fail • Ranking & Comparison</div>
+  <h1>Student Marks Calculator</h1>
+  <p class="subtitle">Online student records — Save, Edit, Delete, Search & Compare</p>
 
-<div class="card">
-<h2>Add Student Result</h2>
-<div class="grid">
-<div><label>Student Name</label><input id="name" type="text" placeholder="Enter name"></div>
-<div><label>Roll Number</label><input id="roll" type="text" placeholder="Enter roll number"></div>
-</div>
-<br>
-<div class="grid">
-<div><label>Mathematics (10)</label><input class="mark" id="mathematics" type="number" min="0" max="10"></div>
-<div><label>Chemistry (10)</label><input class="mark" id="chemistry" type="number" min="0" max="10"></div>
-<div><label>Electronics (20)</label><input class="mark" id="electronics" type="number" min="0" max="20"></div>
-<div><label>Mechanical (10)</label><input class="mark" id="mechanical" type="number" min="0" max="10"></div>
-<div><label>Programming Language (10)</label><input class="mark" id="programming" type="number" min="0" max="10"></div>
-<div><label>Environment (10)</label><input class="mark" id="environment" type="number" min="0" max="10"></div>
-<div><label>PCTW (10)</label><input class="mark" id="pctw" type="number" min="0" max="10"></div>
-</div>
-<div class="actions">
-<button class="primary" onclick="addStudent()">Add Student</button>
-<button class="secondary" onclick="clearForm()">Clear</button>
-</div>
-<div id="editStatus" class="small" style="margin-top:8px"></div>
-    <div class="notice">Passing rule: each 10-mark subject needs <b>4</b> marks; Electronics (20) needs <b>8</b> marks. One failed subject = overall FAIL.</div>
+  <div class="card">
+    <div id="status" class="status">Connecting to database...</div>
+    <h2 id="formTitle">Add Student</h2>
+    <input type="hidden" id="editId">
+
+    <div class="grid">
+      <div><label>Student Name</label><input id="name" type="text" placeholder="Enter student name"></div>
+      <div><label>Roll Number</label><input id="rollNo" type="text" placeholder="Enter roll number"></div>
+      <div><label>Applied Chemistry (10)</label><input id="chemistry" type="number" min="0" max="10"></div>
+      <div><label>Applied Mathematics (10)</label><input id="mathematics" type="number" min="0" max="10"></div>
+      <div><label>Programming Language (10)</label><input id="programming" type="number" min="0" max="10"></div>
+      <div><label>Environment & Sustainability (10)</label><input id="environment" type="number" min="0" max="10"></div>
+      <div><label>Mechanical Engineering (10)</label><input id="mechanical" type="number" min="0" max="10"></div>
+      <div><label>Electronics Engineering (20)</label><input id="electronics" type="number" min="0" max="20"></div>
+      <div><label>Professional Communication & Technical Writing (10)</label><input id="pctw" type="number" min="0" max="10"></div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="saveBtn">Save Student</button>
+      <button class="secondary" id="cancelBtn" style="display:none">Cancel Edit</button>
+      <button class="secondary" id="clearBtn">Clear</button>
+    </div>
+    <div id="preview" class="result-box"></div>
+  </div>
+
+  <div class="card">
+    <h2>Student Records</h2>
+    <input class="search" id="search" type="text" placeholder="Search by name or roll number...">
+    <p class="small">Select students and press Compare. Up to 1000 records are supported by this page.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Compare</th><th>Name</th><th>Roll No.</th><th>Total</th><th>Percentage</th><th>Overall</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="studentTable"></tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <button class="primary" id="compareBtn">Compare Selected</button>
+      <button class="secondary" id="clearSelectionBtn">Clear Selection</button>
+    </div>
+  </div>
+
+  <div class="card" id="compareSection" style="display:none">
+    <h2>Comparison</h2>
+    <div id="compareOutput"></div>
+  </div>
 </div>
 
-<div class="card">
-<h2>Students <span id="count">(0/1000)</span></h2>
-<div id="studentList" class="student-list"><p class="small">No students added yet.</p></div>
-</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc,
+  onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import {
+  getAuth, signInAnonymously, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-<div class="card">
-<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-<h2>Result Comparison</h2>
-<div>
-<button class="secondary" onclick="sortResults()">Sort by Rank</button>
-<button class="secondary" onclick="downloadCSV()">Download CSV</button>
-<button class="secondary" onclick="downloadExcel()">Download Excel</button>
-<button class="secondary" onclick="backupData()">Backup Data</button>
-<button class="secondary" onclick="document.getElementById('restoreFile').click()">Load Backup</button>
-<input id="restoreFile" type="file" accept="application/json" style="display:none" onchange="restoreData(event)">
-<button class="danger" onclick="clearAll()">Clear All</button>
-</div>
-</div>
-<div id="comparison" class="table-wrap"><p class="small">Add students to see comparison.</p></div>
-</div>
-</div>
+const firebaseConfig = {
+  apiKey: "AIzaSyCPpsZ66OK5ihbA0uJiE4Wd0TXBDOTc2Bo",
+  authDomain: "student-marks-calculator-3cbab.firebaseapp.com",
+  projectId: "student-marks-calculator-3cbab",
+  storageBucket: "student-marks-calculator-3cbab.firebasestorage.app",
+  messagingSenderId: "342725424710",
+  appId: "1:342725424710:web:4042ae711f6e93112efc47",
+  measurementId: "G-92C5JRVYSC"
+};
 
-<script>
-const subjects = [
- {key:"mathematics", name:"Mathematics", max:10, pass:4},
- {key:"chemistry", name:"Chemistry", max:10, pass:4},
- {key:"electronics", name:"Electronics", max:20, pass:8},
- {key:"mechanical", name:"Mechanical", max:10, pass:4},
- {key:"programming", name:"Programming", max:10, pass:4},
- {key:"environment", name:"Environment", max:10, pass:4},
- {key:"pctw", name:"PCTW", max:10, pass:4}
-];
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const statusEl = document.getElementById("status");
+const table = document.getElementById("studentTable");
+const search = document.getElementById("search");
+const editId = document.getElementById("editId");
+const formTitle = document.getElementById("formTitle");
+const saveBtn = document.getElementById("saveBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+const preview = document.getElementById("preview");
+
 let students = [];
-let editingIndex = -1;
-const STORAGE_KEY = "studentMarksCalculator_v2";
-loadSavedData();
 
-function getData(){
-  const name=document.getElementById("name").value.trim();
-  const roll=document.getElementById("roll").value.trim();
-  if(!name){alert("Please enter student name.");return null;}
-  const marks={};
-  for(const s of subjects){
-    const v=document.getElementById(s.key).value;
-    if(v==="" || Number(v)<0 || Number(v)>s.max){
-      alert(`Enter valid marks for ${s.name} (0-${s.max}).`);
-      return null;
-    }
-    marks[s.key]=Number(v);
+const subjects = [
+  ["chemistry","Applied Chemistry",10],
+  ["mathematics","Applied Mathematics",10],
+  ["programming","Programming Language",10],
+  ["environment","Environment & Sustainability",10],
+  ["mechanical","Mechanical Engineering",10],
+  ["electronics","Electronics Engineering",20],
+  ["pctw","Professional Communication & Technical Writing",10]
+];
+
+function val(id){ return Number(document.getElementById(id).value); }
+
+function calculate(){
+  const marks = {};
+  let total=0, max=0, allPass=true;
+  for(const [id,name,limit] of subjects){
+    const m=val(id);
+    marks[id]=m;
+    total += m;
+    max += limit;
+    const passMark = limit * 0.40;
+    if(m < passMark) allPass=false;
   }
-  return {name,roll,marks};
+  return {marks,total,max,percentage:(total/max)*100,overall:allPass ? "PASS" : "FAIL"};
 }
-function addStudent(){
-  const data=getData(); if(!data)return;
 
-  if(editingIndex >= 0){
-    students[editingIndex] = data;
-    saveData();
-    cancelEdit();
-    render();
-    alert("Student data updated successfully.");
+function updatePreview(){
+  const r=calculate();
+  let html=`<b>Total:</b> ${r.total}/${r.max} &nbsp; | &nbsp; <b>Percentage:</b> ${r.percentage.toFixed(2)}% &nbsp; | &nbsp; <b>Overall:</b> <span class="${r.overall==="PASS"?"pass":"fail"}">${r.overall}</span><br><br>`;
+  for(const [id,name,limit] of subjects){
+    const passMark=limit*.4, m=r.marks[id];
+    html += `${name}: ${m}/${limit} — <span class="${m>=passMark?"pass":"fail"}">${m>=passMark?"PASS":"FAIL"}</span> (pass: ${passMark})<br>`;
+  }
+  preview.innerHTML=html;
+}
+document.querySelectorAll("input[type=number]").forEach(x=>x.addEventListener("input",updatePreview));
+
+function getFormData(){
+  const name=document.getElementById("name").value.trim();
+  const rollNo=document.getElementById("rollNo").value.trim();
+  if(!name || !rollNo){ alert("Please enter student name and roll number."); return null; }
+  const r=calculate();
+  for(const [id,sub,limit] of subjects){
+    if(r.marks[id] < 0 || r.marks[id] > limit || !Number.isFinite(r.marks[id])){
+      alert(`${sub} marks must be between 0 and ${limit}.`); return null;
+    }
+  }
+  return {name,rollNo,marks:r.marks,total:r.total,max:r.max,percentage:Number(r.percentage.toFixed(2)),overall:r.overall};
+}
+
+async function saveStudent(){
+  const data=getFormData();
+  if(!data) return;
+  saveBtn.disabled=true;
+  try{
+    if(editId.value){
+      await updateDoc(doc(db,"students",editId.value), {...data,updatedAt:serverTimestamp()});
+      statusEl.textContent="Student updated successfully.";
+    }else{
+      if(students.length>=1000){ alert("1000 student limit reached."); return; }
+      await addDoc(collection(db,"students"), {...data,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+      statusEl.textContent="Student saved successfully.";
+    }
+    resetForm();
+  }catch(e){
+    console.error(e);
+    alert("Could not save/update. Check Firebase Authentication and Firestore rules.");
+  }finally{saveBtn.disabled=false;}
+}
+
+function resetForm(){
+  editId.value="";
+  formTitle.textContent="Add Student";
+  saveBtn.textContent="Save Student";
+  cancelBtn.style.display="none";
+  document.querySelectorAll("input[type=text],input[type=number]").forEach(i=>i.value="");
+  updatePreview();
+}
+
+function editStudent(id){
+  const s=students.find(x=>x.id===id);
+  if(!s)return;
+  editId.value=id;
+  formTitle.textContent="Edit Student";
+  saveBtn.textContent="Update Student";
+  cancelBtn.style.display="inline-block";
+  document.getElementById("name").value=s.name||"";
+  document.getElementById("rollNo").value=s.rollNo||"";
+  for(const [key] of subjects) document.getElementById(key).value=s.marks?.[key] ?? 0;
+  updatePreview();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+async function deleteStudent(id){
+  const s=students.find(x=>x.id===id);
+  if(!s)return;
+  if(!confirm(`Delete ${s.name} (${s.rollNo})?`))return;
+  try{
+    await deleteDoc(doc(db,"students",id));
+    statusEl.textContent="Student deleted.";
+  }catch(e){console.error(e);alert("Delete failed.");}
+}
+
+function render(){
+  const q=search.value.trim().toLowerCase();
+  const filtered=students.filter(s=>
+    (s.name||"").toLowerCase().includes(q) || (s.rollNo||"").toLowerCase().includes(q)
+  );
+  table.innerHTML="";
+  if(!filtered.length){
+    table.innerHTML='<tr><td colspan="7">No student records found.</td></tr>';
     return;
   }
-
-  if(students.length>=1000){alert("Maximum 1000 students allowed.");return;}
-  students.push(data);
-  saveData();
-  clearForm(); render();
-}
-
-function editStudent(i){
-  const st = students[i];
-  if(!st)return;
-
-  editingIndex = i;
-  document.getElementById("name").value = st.name || "";
-  document.getElementById("roll").value = st.roll || "";
-
-  subjects.forEach(s=>{
-    document.getElementById(s.key).value = st.marks[s.key];
+  filtered.forEach(s=>{
+    const tr=document.createElement("tr");
+    const overallClass=s.overall==="PASS"?"pass":"fail";
+    tr.innerHTML=`
+      <td><input type="checkbox" class="compareCheck" value="${s.id}"></td>
+      <td>${escapeHtml(s.name)}</td>
+      <td>${escapeHtml(s.rollNo)}</td>
+      <td>${s.total}/${s.max}</td>
+      <td>${Number(s.percentage).toFixed(2)}%</td>
+      <td class="${overallClass}">${s.overall}</td>
+      <td>
+        <button class="secondary editBtn">Edit</button>
+        <button class="danger deleteBtn">Delete</button>
+        <button class="secondary detailsBtn">Details</button>
+      </td>`;
+    tr.querySelector(".editBtn").onclick=()=>editStudent(s.id);
+    tr.querySelector(".deleteBtn").onclick=()=>deleteStudent(s.id);
+    tr.querySelector(".detailsBtn").onclick=()=>showDetails(s);
+    table.appendChild(tr);
   });
-
-  document.getElementById("saveBtn").textContent = "Update Student";
-  document.getElementById("cancelEditBtn").classList.remove("hidden");
-  document.getElementById("editStatus").textContent = "Editing student: " + st.name;
-
-  document.querySelector(".card h2").scrollIntoView({behavior:"smooth", block:"start"});
 }
 
-function cancelEdit(){
-  editingIndex = -1;
-  document.getElementById("saveBtn").textContent = "Add Student";
-  document.getElementById("cancelEditBtn").classList.add("hidden");
-  document.getElementById("editStatus").textContent = "";
-  clearForm();
+function escapeHtml(v){
+  return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 }
-function clearForm(){
-  document.getElementById("name").value="";
-  document.getElementById("roll").value="";
-  subjects.forEach(s=>document.getElementById(s.key).value="");
+
+function showDetails(s){
+  let html=`<h3>${escapeHtml(s.name)} — ${escapeHtml(s.rollNo)}</h3>`;
+  html+=`<p><b>Total:</b> ${s.total}/${s.max} | <b>Percentage:</b> ${Number(s.percentage).toFixed(2)}% | <b>Overall:</b> <span class="${s.overall==="PASS"?"pass":"fail"}">${s.overall}</span></p>`;
+  html+="<table><tr><th>Subject</th><th>Marks</th><th>Result</th></tr>";
+  for(const [id,name,limit] of subjects){
+    const m=Number(s.marks?.[id]??0), passMark=limit*.4;
+    html+=`<tr><td>${name}</td><td>${m}/${limit}</td><td class="${m>=passMark?"pass":"fail"}">${m>=passMark?"PASS":"FAIL"}</td></tr>`;
+  }
+  html+="</table>";
+  preview.innerHTML=html;
+  window.scrollTo({top:0,behavior:"smooth"});
 }
-function resultInfo(st){
-  let total=0, failed=[];
-  subjects.forEach(s=>{
-    total+=st.marks[s.key];
-    if(st.marks[s.key]<s.pass) failed.push(s.name);
-  });
-  const max=80;
-  const percentage=(total/max)*100;
-  return {total,percentage,failed,passed:failed.length===0};
+
+function compareSelected(){
+  const ids=[...document.querySelectorAll(".compareCheck:checked")].map(x=>x.value);
+  if(ids.length<2){alert("Select at least 2 students to compare.");return;}
+  const selected=students.filter(s=>ids.includes(s.id));
+  const section=document.getElementById("compareSection");
+  section.style.display="block";
+  let html='<div class="table-wrap"><table><tr><th>Subject</th>';
+  selected.forEach(s=>html+=`<th>${escapeHtml(s.name)}<br>${escapeHtml(s.rollNo)}</th>`);
+  html+="</tr>";
+  for(const [id,name,limit] of subjects){
+    html+=`<tr><td>${name} (${limit})</td>`;
+    selected.forEach(s=>{
+      const m=Number(s.marks?.[id]??0), pass=m>=limit*.4;
+      html+=`<td class="${pass?"pass":"fail"}">${m}/${limit}<br>${pass?"PASS":"FAIL"}</td>`;
+    });
+    html+="</tr>";
+  }
+  html+='<tr><th>Total</th>';
+  selected.forEach(s=>html+=`<th>${s.total}/${s.max}<br>${Number(s.percentage).toFixed(2)}%</th>`);
+  html+='</tr><tr><th>Overall</th>';
+  selected.forEach(s=>html+=`<th class="${s.overall==="PASS"?"pass":"fail"}">${s.overall}</th>`);
+  html+='</tr></table></div>';
+  document.getElementById("compareOutput").innerHTML=html;
+  section.scrollIntoView({behavior:"smooth"});
 }
-function removeStudent(i){students.splice(i,1);saveData();render();}
-function sortResults(){
-  students.sort((a,b)=>resultInfo(b).total-resultInfo(a).total);
-  saveData(); render();
+
+function clearSelection(){
+  document.querySelectorAll(".compareCheck").forEach(x=>x.checked=false);
 }
-function renderList(){
-  const box=document.getElementById("studentList");
-  document.getElementById("count").textContent=`(${students.length}/1000)`;
-  if(!students.length){box.innerHTML='<p class="small">No students added yet.</p>';return;}
-  box.innerHTML=students.map((s,i)=>{
-    const r=resultInfo(s);
-    return `<div class="student-row">
-      <div><b>${escapeHtml(s.name)}</b> ${s.roll?`<span class="small">• Roll: ${escapeHtml(s.roll)}</span>`:""}
-      <br><span class="badge ${r.passed?"pass":"fail"}">${r.passed?"PASS":"FAIL"}</span>
-      <span class="small">${r.total}/80 • ${r.percentage.toFixed(2)}%</span>
-      ${!r.passed?`<span class="small"> • Failed: ${r.failed.join(", ")}</span>`:""}</div>
-      <div><button class="secondary" onclick="editStudent(${i})">Edit</button><button class="danger" onclick="removeStudent(${i})">Remove</button></div>
-    </div>`;
-  }).join("");
-}
-function renderTable(){
-  const box=document.getElementById("comparison");
-  if(!students.length){box.innerHTML='<p class="small">Add students to see comparison.</p>';return;}
-  const sorted=[...students].sort((a,b)=>resultInfo(b).total-resultInfo(a).total);
-  let html=`<table><thead><tr>
-  <th>Rank</th><th>Student</th><th>Roll</th>
-  ${subjects.map(s=>`<th>${s.name}<br><small>/${s.max}</small></th>`).join("")}
-  <th>Total /80</th><th>Percentage</th><th>Final Result</th><th>Failed Subjects</th>
-  </tr></thead><tbody>`;
-  sorted.forEach((s,i)=>{
-    const r=resultInfo(s);
-    html+=`<tr class="${i===0?'rank1':''}">
-      <td>${i+1}</td><td>${escapeHtml(s.name)}</td><td>${escapeHtml(s.roll||"-")}</td>
-      ${subjects.map(sub=>{
-        const m=s.marks[sub.key], ok=m>=sub.pass;
-        return `<td class="${ok?'pass-cell':'fail-cell'}">${m} ${ok?'✓':'✗'}</td>`;
-      }).join("")}
-      <td><b>${r.total}</b></td><td>${r.percentage.toFixed(2)}%</td>
-      <td><span class="badge ${r.passed?'pass':'fail'}">${r.passed?'PASS':'FAIL'}</span></td>
-      <td class="${r.failed.length?'fail-cell':''}">${r.failed.length?r.failed.join(", "):"None"}</td>
-    </tr>`;
-  });
-  html+="</tbody></table>";
-  box.innerHTML=html;
-}
-function render(){renderList();renderTable();}
-function clearAll(){
-  if(students.length && !confirm("Delete all student results?"))return;
-  students=[]; saveData(); render();
-}
-function saveData(){
-  try{localStorage.setItem(STORAGE_KEY, JSON.stringify(students));}catch(e){alert("Data could not be saved in this browser.");}
-}
-function loadSavedData(){
+
+saveBtn.onclick=saveStudent;
+cancelBtn.onclick=resetForm;
+document.getElementById("clearBtn").onclick=resetForm;
+document.getElementById("compareBtn").onclick=compareSelected;
+document.getElementById("clearSelectionBtn").onclick=clearSelection;
+search.addEventListener("input",render);
+
+async function start(){
   try{
-    const saved=localStorage.getItem(STORAGE_KEY);
-    if(saved){const data=JSON.parse(saved); if(Array.isArray(data)) students=data.slice(0,1000);}
-  }catch(e){students=[];}
+    statusEl.textContent="Signing in...";
+    await signInAnonymously(auth);
+    statusEl.textContent="Connected. Student data will sync across devices.";
+    onSnapshot(collection(db,"students"), snap=>{
+      students=snap.docs.map(d=>({id:d.id,...d.data()}));
+      students.sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+      render();
+      statusEl.textContent=`Connected — ${students.length} student record(s)`;
+    }, err=>{
+      console.error(err);
+      statusEl.textContent="Database read error. Check Firestore rules.";
+    });
+  }catch(e){
+    console.error(e);
+    statusEl.textContent="Firebase connection/authentication failed.";
+    alert("Enable Anonymous sign-in in Firebase Authentication, then reload the website.");
+  }
 }
-function makeRows(){
-  return students.map((s,i)=>{
-    const r=resultInfo(s);
-    const row={Rank:i+1,Student:s.name,Roll:s.roll||""};
-    subjects.forEach(sub=>row[sub.name]=s.marks[sub.key]);
-    row["Total /80"]=r.total; row["Percentage"]=Number(r.percentage.toFixed(2));
-    row["Final Result"]=r.passed?"PASS":"FAIL"; row["Failed Subjects"]=r.failed.join(", ");
-    return row;
-  });
-}
-function downloadCSV(){
-  if(!students.length){alert("No student data to download.");return;}
-  const rows=makeRows(); const headers=Object.keys(rows[0]);
-  const csv=[headers,...rows.map(r=>headers.map(h=>`"${String(r[h]).replace(/"/g,'""')}"`))].map(r=>r.join(",")).join("\n");
-  downloadBlob("student_results.csv",csv,"text/csv;charset=utf-8;");
-}
-function downloadExcel(){
-  if(!students.length){alert("No student data to download.");return;}
-  if(typeof XLSX==="undefined"){alert("Excel library could not load. Please check your internet connection and try again.");return;}
-  const ws=XLSX.utils.json_to_sheet(makeRows()); const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,"Results"); XLSX.writeFile(wb,"student_results.xlsx");
-}
-function backupData(){
-  if(!students.length){alert("No student data to backup.");return;}
-  downloadBlob("student_results_backup.json",JSON.stringify(students,null,2),"application/json");
-}
-function restoreData(event){
-  const file=event.target.files[0]; if(!file)return;
-  const reader=new FileReader();
-  reader.onload=()=>{
-    try{
-      const data=JSON.parse(reader.result);
-      if(!Array.isArray(data) || data.length>1000) throw new Error("Invalid");
-      students=data; saveData(); render(); alert(`${students.length} student records loaded successfully.`);
-    }catch(e){alert("Invalid backup file.");}
-    event.target.value="";
-  };
-  reader.readAsText(file);
-}
-function downloadBlob(name,data,type){
-  const blob=new Blob([data],{type}); const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-}
-function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
-}
+start();
+updatePreview();
 </script>
 </body>
 </html>
